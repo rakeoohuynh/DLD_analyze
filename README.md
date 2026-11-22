@@ -1,40 +1,104 @@
-# Dubai Real Estate Sales Transactions (DLD, 2004–2026)
+# Phân tích thị trường bất động sản Dubai (DLD Sales 2004–2026)
 
-**1,372,277 registered property sale transactions in Dubai**, sourced directly from the Dubai Land Department (DLD) via the Dubai Pulse open-data platform. This is not a listings scrape and it is not asking prices — every row is a transaction actually registered with the government.
+Capstone Data Analyst: phân tích **1,34 triệu giao dịch mua bán bất động sản** đã đăng ký tại Dubai Land Department (DLD), từ năm 2004 đến 05/10/2026.
 
-Published by **[Dubai Real Estate Data](https://www.dubairealestatedata.com)** (dubairealestatedata.com), an independent analytics site that turns this exact DLD data into medians, trends, yields and area profiles for the Dubai market. This dataset is the raw material behind that site, released so researchers, students and other builders can work with it directly instead of re-scraping or re-licensing it themselves.
+```
+CSV thô ──► Python ETL ──► MySQL (star schema) ──► Power BI dashboard
+                                   │
+                                   └──► Notebook Machine Learning ──► Slide thuyết trình
+```
 
-## What's in it
+## Kết quả chính
 
-- **Coverage:** transaction dates from 2004 through **5 October 2026** (the tail before 2004 is thin — ~8.6k rows — and included as-is rather than trimmed). This is a **fixed historical snapshot**, not a live feed — see "Staying current" below.
-- **Population:** DLD `trans_group = Sales` only. Mortgages and gifts are a different registration process with a different pricing logic (a mortgage amount is a loan, not a sale price) and are deliberately excluded — see [dubairealestatedata.com/methodology](https://www.dubairealestatedata.com/methodology#sales-transactions).
-- **Granularity:** one row per registered transaction — date, area, project/building (where disclosed), property type, size, price, and a transparent data-quality flag.
-- **Formats:** CSV (`dld_sales_transactions.csv`, ~239 MB) and Parquet (`dld_sales_transactions.parquet`, ~23 MB, zstd-compressed) — same data, same row order.
+| | |
+|---|---|
+| **×6,5** | Số giao dịch năm 2025 (210 nghìn) so với năm 2020 (32 nghìn) |
+| **+83%** | Median giá/sqft nhà ở, từ đáy năm 2020 đến 2025 (1.686 AED) |
+| **62,6%** | Tỷ lệ giao dịch Off-Plan năm 2025; giá/sqft cao hơn Ready khoảng 33% |
+| **−21%** | Số giao dịch 2026 so với cùng kỳ 2025, trong khi giá vẫn tăng 4% |
+| **13,4%** | Sai số trung vị của mô hình định giá LightGBM trên dữ liệu năm 2025 |
+| **4 cụm** | Nhóm khu vực theo K-Means: Prime, Emerging hot spots, Mass-market, Ready larger homes |
 
-See **`DATA_DICTIONARY.md`** for the full column reference, including exactly how the `quality_flags` column is computed and which population to use for a price-per-sqft analysis.
+Chi tiết xem trong [slide thuyết trình](presentation/DLD_capstone.pptx) và [kịch bản](presentation/script.md).
 
-## Why this file, not another Dubai transactions dump
+## Cấu trúc thư mục
 
-- **Quality flags, not silent cleaning.** Every row keeps a `quality_flags` bitmask instead of being quietly dropped or blended in. You decide what "clean" means for your analysis; we show our own choice (`quality_flags = 0`, 1,343,782 of 1,372,277 rows) so it's reproducible.
-- **Outlier bands are computed, not eyeballed.** The P1–P99 price-per-sqft band behind the `PSF_OUTLIER` flag is calculated per (year × property type × registration type) from this exact file — the method is in `DATA_DICTIONARY.md`, not a black box.
-- **Medians, never averages, and land is excluded from psf.** Land trades on plot area (a single island can be tens of thousands of m²) and whole-building deals are wholesale — both would distort a "price per sqft" figure. The live site's price-per-sqft population is exactly `property_type in (Unit, Villa) and usage = Residential`, reproduced here so you can recompute the same headline number this file backs.
+| Đường dẫn | Nội dung |
+|---|---|
+| [`etl.py`](etl.py) | Pipeline ETL: extract → profile → transform → star schema → load MySQL → validate |
+| [`utils/`](utils/) | Cấu hình và hàm kết nối MySQL |
+| [`ML.ipynb`](ML.ipynb) | Mô hình định giá (Ridge, LightGBM) và phân cụm khu vực (K-Means) |
+| [`powerbi/`](powerbi/) | Project Power BI (PBIP): semantic model TMDL, report 5 trang và trang tooltip |
+| [`powerbi/scripts/`](powerbi/scripts/) | Script sinh lại report và thêm measure DAX |
+| [`presentation/`](presentation/) | Slide PowerPoint, kịch bản thuyết trình, script sinh slide |
+| [`docs/project/`](docs/project/) | Đề bài và kế hoạch ETL/EDA |
+| [`docs/dataset/`](docs/dataset/) | Mô tả bộ dữ liệu gốc, data dictionary, giấy phép |
+| `data/` | Dữ liệu thô và đã xử lý (không đưa lên GitHub, xem bên dưới) |
 
-## Staying current
+## Mô hình dữ liệu
 
-This file is a snapshot through **5 October 2026**. It is refreshed monthly from the same pipeline. The live site ingests the DLD's rolling open-data gateway weekly and publishes current medians, YoY trends and area rankings at **[dubairealestatedata.com/market](https://www.dubairealestatedata.com/market)**, with a full machine-readable mirror at **[dubairealestatedata.com/market.md](https://www.dubairealestatedata.com/market.md)**. If this dataset is useful to you, check there for anything after this snapshot's cutoff.
+Database MySQL `dld` gồm 1 bảng fact và 5 bảng dimension, quan hệ nhiều-một:
 
-## License & attribution
+| Bảng | Số dòng | Nội dung |
+|---|---|---|
+| `fact_sales` | 1.335.396 | Giá (AED), diện tích (m²), giá/sqft và các khóa ngoại |
+| `dim_date` | 8.310 | Lịch liên tục, có cờ tháng/năm chưa đủ dữ liệu |
+| `dim_area` | 197 | Khu vực theo địa chính DLD |
+| `dim_project` | 10.028 | Dự án, master project, tòa nhà |
+| `dim_property` | 140 | Loại BĐS, mục đích sử dụng, số phòng, chỗ đậu xe |
+| `dim_procedure` | 18 | Thủ tục DLD, Off-Plan / Ready |
 
-**CC BY 4.0** (Creative Commons Attribution 4.0 International) — the same license the Dubai Land Department publishes its open data under via Dubai Pulse. Free to use, share and adapt, with attribution. See `LICENSE.md`.
+Notebook ML ghi thêm bảng `area_cluster` (nhãn cụm của 49 khu vực).
 
-When you use this dataset, please cite:
+**Làm sạch dữ liệu:** giữ 97,3% dữ liệu gốc. Loại các dòng bị gắn cờ chất lượng và dữ liệu trước 2004; khôi phục mã thủ tục bị thiếu của năm 2026 từ `transaction_id`; gộp các tên dự án chỉ khác chữ hoa/thường. Chi tiết trong [`etl.py`](etl.py) và slide 4.
 
-> Dubai Real Estate Data (dubairealestatedata.com), based on Dubai Land Department open data.
+## Cách chạy
 
-- Original source: Dubai Land Department (DLD) open data via Dubai Pulse — https://dubailand.gov.ae/en/open-data/real-estate-data/
-- This release: https://www.dubairealestatedata.com/sources
-- Methodology: https://www.dubairealestatedata.com/methodology
+### 1. Cài đặt môi trường
 
-## Disclaimer
+Yêu cầu: Python 3.12+, MySQL 8, Power BI Desktop (bản hỗ trợ PBIP), Node.js (chỉ cần nếu muốn sinh lại slide).
 
-Independent analytics. Not affiliated with, or endorsed by, the Government of Dubai, the Dubai Land Department or any government entity. Not investment advice, not a valuation.
+```powershell
+python -m venv myenv
+myenv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Sửa thông tin kết nối MySQL trong [`utils/config.py`](utils/config.py). Database `dld` sẽ được tự tạo khi chạy ETL.
+
+### 2. Tải dữ liệu
+
+File gốc `dld_sales_transactions.csv` (~239 MB) vượt giới hạn 100 MB của GitHub nên không có trong repo. Tải từ [dubairealestatedata.com/sources](https://www.dubairealestatedata.com/sources) và đặt vào `data/raw/`.
+
+### 3. Chạy ETL
+
+```powershell
+python etl.py
+```
+
+Script làm sạch dữ liệu, load 6 bảng vào MySQL, ghi bản CSV vào `data/processed/` và kiểm tra lại số dòng, khóa và tổng giá trị. Mất khoảng 2,5 phút; log ghi trong `log/`. Chạy lại không làm nhân đôi dữ liệu vì các bảng được tạo lại mỗi lần. Dùng `python etl.py --no-load` để chỉ xuất CSV mà không load MySQL.
+
+### 4. Mở dashboard Power BI
+
+Mở [`powerbi/DLD_Sales.pbip`](powerbi/DLD_Sales.pbip) trong Power BI Desktop rồi bấm **Refresh**. Mặc định report đọc từ MySQL. Để đọc từ CSV, đổi tham số `SourceMode` thành `CSV` và `DataFolder` thành đường dẫn tới `data/processed/` trên máy bạn (Transform data → Edit parameters).
+
+### 5. Chạy notebook Machine Learning
+
+Mở [`ML.ipynb`](ML.ipynb) và chạy toàn bộ (khoảng 2 phút). Notebook đọc dữ liệu từ MySQL nên cần chạy ETL trước.
+
+### 6. Sinh lại slide (tùy chọn)
+
+```powershell
+python presentation\export_data.py
+cd presentation
+npm install
+node build_deck.js
+```
+
+Lưu ý: script sẽ ghi đè `DLD_capstone.pptx`. Các số liệu ML trên slide 12–13 được ghi cố định theo kết quả của `ML.ipynb`.
+
+## Nguồn dữ liệu
+
+Dubai Real Estate Data ([dubairealestatedata.com](https://www.dubairealestatedata.com)), dựa trên dữ liệu mở của Dubai Land Department. Giấy phép **CC BY 4.0**. Xem [`docs/dataset/README.md`](docs/dataset/README.md) và [`docs/dataset/LICENSE.md`](docs/dataset/LICENSE.md).
+
+Dự án phục vụ mục đích học tập, không phải tư vấn đầu tư.
