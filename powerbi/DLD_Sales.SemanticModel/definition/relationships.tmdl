@@ -1,0 +1,20 @@
+relationship b328b50b-ed46-4c2a-9052-e1ada1e46cc3
+	fromColumn: fact_sales.date_id
+	toColumn: dim_date.date_id
+
+relationship cd5e7631-4f3d-4ab2-9994-5c67d17315de
+	fromColumn: fact_sales.area_id
+	toColumn: dim_area.area_id
+
+relationship b15ac225-8a22-4147-9d6c-dce0dc44bd42
+	fromColumn: fact_sales.project_id
+	toColumn: dim_project.project_id
+
+relationship fec89fbd-35d8-4707-83ee-182eb029a875
+	fromColumn: fact_sales.property_id
+	toColumn: dim_property.property_id
+
+relationship 41aefd76-cf99-48c3-ac9c-ada3cf6883cf
+	fromColumn: fact_sales.procedure_id
+	toColumn: dim_procedure.procedure_id
+

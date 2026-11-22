@@ -1,0 +1,210 @@
+table fact_sales
+	lineageTag: e4b014ab-0496-4787-a358-b16aaf943a3a
+
+	measure Transactions = COUNTROWS(fact_sales)
+		formatString: #,0
+		displayFolder: 1 Volume
+		lineageTag: 5a0379b9-6eef-49ce-a808-04c8b1be489c
+
+	measure 'Total Value AED' = SUM(fact_sales[price_aed])
+		formatString: #,0
+		displayFolder: 1 Volume
+		lineageTag: 1337b131-f0d4-4dbb-b21b-59a85a4c1bb4
+
+	measure 'Total Value AED bn' = DIVIDE([Total Value AED], 1000000000)
+		formatString: #,0.0
+		displayFolder: 1 Volume
+		lineageTag: abcbb48c-5066-4088-a4ec-ac3b8f432c6d
+
+	measure 'Median Price AED' = MEDIAN(fact_sales[price_aed])
+		formatString: #,0
+		displayFolder: 2 Price
+		lineageTag: 6e60fb27-1688-4c28-9180-ad6b6d7bd76b
+
+	measure 'Median PSF Residential' = CALCULATE(MEDIAN(fact_sales[price_psf]), KEEPFILTERS(dim_property[property_type_label] IN {"Unit", "Villa"}), KEEPFILTERS(dim_property[usage_label] = "Residential"))
+		formatString: #,0
+		displayFolder: 2 Price
+		lineageTag: a058e144-fa9f-4a54-b647-12880e76f34d
+
+	measure 'Residential Transactions' = CALCULATE([Transactions], KEEPFILTERS(dim_property[property_type_label] IN {"Unit", "Villa"}), KEEPFILTERS(dim_property[usage_label] = "Residential"))
+		formatString: #,0
+		displayFolder: 2 Price
+		lineageTag: c3dad68a-9c9d-49f0-89ab-c6c9f1cf559d
+
+	measure 'Off-Plan Transactions' = CALCULATE([Transactions], KEEPFILTERS(dim_procedure[reg_type_label] = "Off-Plan"))
+		formatString: #,0
+		displayFolder: 3 Mix
+		lineageTag: de65ffaf-8236-4af3-a100-88633ca3c519
+
+	measure 'Off-Plan Share' = DIVIDE([Off-Plan Transactions], [Transactions])
+		formatString: 0.0%
+		displayFolder: 3 Mix
+		lineageTag: 63b0a65c-1efb-4f19-b049-9b8eee0be3af
+
+	measure 'Transactions PY' = CALCULATE([Transactions], SAMEPERIODLASTYEAR(dim_date[full_date]))
+		formatString: #,0
+		displayFolder: 4 YoY
+		lineageTag: a4c54304-f719-4b18-8521-d9af345f9a47
+
+	measure 'Transactions YoY %' = VAR py = [Transactions PY] RETURN IF(py > 0, DIVIDE([Transactions] - py, py))
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 4 YoY
+		lineageTag: c2ba057a-ee03-4ae8-9b99-891321a2e3bd
+
+	measure 'Total Value PY' = CALCULATE([Total Value AED], SAMEPERIODLASTYEAR(dim_date[full_date]))
+		formatString: #,0
+		displayFolder: 4 YoY
+		lineageTag: b744be72-c4f6-4df1-badb-fd7b8aa73435
+
+	measure 'Total Value YoY %' = VAR py = [Total Value PY] RETURN IF(py > 0, DIVIDE([Total Value AED] - py, py))
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 4 YoY
+		lineageTag: 21e5eec5-31fa-447b-b0d2-3462719933a8
+
+	measure 'Median PSF PY' = CALCULATE([Median PSF Residential], SAMEPERIODLASTYEAR(dim_date[full_date]))
+		formatString: #,0
+		displayFolder: 4 YoY
+		lineageTag: 48a5e77d-6348-4863-965b-155e26ad042d
+
+	measure 'Median PSF YoY %' = VAR py = [Median PSF PY] RETURN IF(py > 0, DIVIDE([Median PSF Residential] - py, py))
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 4 YoY
+		lineageTag: ad365679-4470-48de-b7d1-fc7781e4a7ac
+
+	measure 'Avg Monthly Transactions' = AVERAGEX(VALUES(dim_date[year]), [Transactions])
+		formatString: #,0
+		displayFolder: 1 Volume
+		lineageTag: 186bba7b-0013-44d0-b6f2-8d1acac287a4
+
+	measure 'Median PSF Off-Plan' = CALCULATE([Median PSF Residential], KEEPFILTERS(dim_procedure[reg_type_label] = "Off-Plan"))
+		formatString: #,0
+		displayFolder: 2 Price
+		lineageTag: 37263c72-322b-4221-9178-e6507496b8a8
+
+	measure 'Median PSF Ready' = CALCULATE([Median PSF Residential], KEEPFILTERS(dim_procedure[reg_type_label] = "Ready"))
+		formatString: #,0
+		displayFolder: 2 Price
+		lineageTag: f9416b87-e55a-4e73-90d1-e317117a9e0e
+
+	measure 'Off-Plan PSF Premium %' = DIVIDE([Median PSF Off-Plan] - [Median PSF Ready], [Median PSF Ready])
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 2 Price
+		lineageTag: 26a7e2a6-54b5-44f7-b562-3a231cff5294
+
+	measure 'PSF Growth 2022-2025 %' = VAR p0 = CALCULATE([Median PSF Residential], REMOVEFILTERS(dim_date), dim_date[year] = 2022) VAR p1 = CALCULATE([Median PSF Residential], REMOVEFILTERS(dim_date), dim_date[year] = 2025) VAR n0 = CALCULATE([Residential Transactions], REMOVEFILTERS(dim_date), dim_date[year] = 2022) VAR n1 = CALCULATE([Residential Transactions], REMOVEFILTERS(dim_date), dim_date[year] = 2025) RETURN IF(n0 >= 300 && n1 >= 300, DIVIDE(p1 - p0, p0))
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 4 YoY
+		lineageTag: e2255421-1c02-4e4c-b645-5f538db0c691
+
+	measure 'Area Rank Volume' = IF(ISINSCOPE(dim_area[area_name_en]), RANKX(ALLSELECTED(dim_area[area_name_en]), [Transactions], , DESC))
+		formatString: 0
+		displayFolder: 5 Ranking
+		lineageTag: 3e94a5ef-a3d7-48e3-a508-c1a39490a55e
+
+	measure 'Area Rank PSF' = IF(ISINSCOPE(dim_area[area_name_en]) && [Residential Transactions] >= 300, RANKX(FILTER(ALLSELECTED(dim_area[area_name_en]), [Residential Transactions] >= 300), [Median PSF Residential], , DESC))
+		formatString: 0
+		displayFolder: 5 Ranking
+		lineageTag: 4b042064-aa8d-478e-91d0-2f088f538b4e
+
+	measure 'Area Rank PSF Growth' = IF(ISINSCOPE(dim_area[area_name_en]) && NOT ISBLANK([PSF Growth 2022-2025 %]), RANKX(FILTER(ALLSELECTED(dim_area[area_name_en]), NOT ISBLANK([PSF Growth 2022-2025 %])), [PSF Growth 2022-2025 %], , DESC))
+		formatString: 0
+		displayFolder: 5 Ranking
+		lineageTag: 4e7b72c7-a2a3-4748-95df-560ab586632f
+
+	measure 'Project Rank Off-Plan' = IF(ISINSCOPE(dim_project[master_project_name]) && SELECTEDVALUE(dim_project[master_project_name]) <> "Unknown", RANKX(FILTER(ALLSELECTED(dim_project[master_project_name]), dim_project[master_project_name] <> "Unknown"), [Off-Plan Transactions], , DESC))
+		formatString: 0
+		displayFolder: 5 Ranking
+		lineageTag: 9a2ffe5a-379f-4062-bc69-27c694096022
+
+	column transaction_id
+		dataType: string
+		isHidden
+		lineageTag: 4081eeb8-ecbb-4de9-bc25-cda86a307ceb
+		summarizeBy: none
+		sourceColumn: transaction_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_id
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 96475fff-246e-46ba-8487-5243d1eb25c7
+		summarizeBy: none
+		sourceColumn: date_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column area_id
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b2690126-943a-4c7b-a8d5-7d658e0a8a04
+		summarizeBy: none
+		sourceColumn: area_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column project_id
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: fdd9bd1b-53a9-49ba-be69-4c70b1d461ef
+		summarizeBy: none
+		sourceColumn: project_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column property_id
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 48fa8820-424d-422d-a9f6-753a9bc15f0c
+		summarizeBy: none
+		sourceColumn: property_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column procedure_id
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b38ec21c-bf3f-42ae-90b7-e6834b72eb0a
+		summarizeBy: none
+		sourceColumn: procedure_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column price_aed
+		dataType: int64
+		formatString: #,0
+		lineageTag: e580dde5-def5-4ab1-9d72-0afc6430ed4a
+		summarizeBy: sum
+		sourceColumn: price_aed
+
+		annotation SummarizationSetBy = Automatic
+
+	column area_sqm
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 191eec0b-5b1f-4b5e-8eb5-709c8eba6fa3
+		summarizeBy: sum
+		sourceColumn: area_sqm
+
+		annotation SummarizationSetBy = Automatic
+
+	column price_psf
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 41c89a53-37aa-4d50-8434-041b8f25bf13
+		summarizeBy: none
+		sourceColumn: price_psf
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_sales = m
+		mode: import
+		source = Table.TransformColumnTypes(Table.SelectColumns(GetTable("fact_sales"), {"transaction_id", "date_id", "area_id", "project_id", "property_id", "procedure_id", "price_aed", "area_sqm", "price_psf"}), {{"transaction_id", type text}, {"date_id", Int64.Type}, {"area_id", Int64.Type}, {"project_id", Int64.Type}, {"property_id", Int64.Type}, {"procedure_id", Int64.Type}, {"price_aed", Int64.Type}, {"area_sqm", type number}, {"price_psf", type number}})
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,131 @@
+table dim_date
+	lineageTag: 8c811e46-7986-4a02-888e-ce69588cadff
+	dataCategory: Time
+
+	column date_id
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: af9c3f7f-a217-43aa-803d-10fe30b60b3a
+		summarizeBy: none
+		sourceColumn: date_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column full_date
+		dataType: dateTime
+		isKey
+		formatString: yyyy-mm-dd
+		lineageTag: 56c1f553-b861-4e8f-b0a5-9f95ae7dd219
+		summarizeBy: none
+		sourceColumn: full_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column year
+		dataType: int64
+		formatString: 0
+		lineageTag: 581d9689-82cc-4db1-a6fe-94a3a7ff1353
+		summarizeBy: none
+		sourceColumn: year
+
+		annotation SummarizationSetBy = Automatic
+
+	column quarter
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 4f552fe7-512d-4c09-90f8-6c995ea20d01
+		summarizeBy: none
+		sourceColumn: quarter
+
+		annotation SummarizationSetBy = Automatic
+
+	column quarter_label
+		dataType: string
+		lineageTag: 8a8b3fcc-5fac-47ac-94f7-2b683b15bcfa
+		summarizeBy: none
+		sourceColumn: quarter_label
+		sortByColumn: quarter
+
+		annotation SummarizationSetBy = Automatic
+
+	column month
+		dataType: int64
+		formatString: 0
+		lineageTag: 947eb993-8a0b-47a6-81fb-82119bd96ca2
+		summarizeBy: none
+		sourceColumn: month
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_name
+		dataType: string
+		lineageTag: ca92cef1-2465-4c51-af0a-578a8ff7809a
+		summarizeBy: none
+		sourceColumn: month_name
+		sortByColumn: month
+
+		annotation SummarizationSetBy = Automatic
+
+	column year_month_label
+		dataType: string
+		lineageTag: 834afa27-d017-4d12-815f-9aef80aa5567
+		summarizeBy: none
+		sourceColumn: year_month_label
+
+		annotation SummarizationSetBy = Automatic
+
+	column weekday_num
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d448966b-7c55-4341-8949-0236e1118ad4
+		summarizeBy: none
+		sourceColumn: weekday_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column weekday_name
+		dataType: string
+		lineageTag: 8e128121-d1b4-422b-8917-4c4b01c40738
+		summarizeBy: none
+		sourceColumn: weekday_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_weekend
+		dataType: int64
+		formatString: 0
+		lineageTag: 87e16f90-aabf-4b55-98c8-1bd3a47644fe
+		summarizeBy: none
+		sourceColumn: is_weekend
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_complete_month
+		dataType: int64
+		formatString: 0
+		lineageTag: 2198d294-a8dc-4fa9-997e-0a7042c18fbc
+		summarizeBy: none
+		sourceColumn: is_complete_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_complete_year
+		dataType: int64
+		formatString: 0
+		lineageTag: 7986d8ca-caa1-4731-9c0a-0db2478d1ecf
+		summarizeBy: none
+		sourceColumn: is_complete_year
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_date = m
+		mode: import
+		source = Table.TransformColumnTypes(Table.SelectColumns(GetTable("dim_date"), {"date_id", "full_date", "year", "quarter", "quarter_label", "month", "month_name", "year_month_label", "weekday_num", "weekday_name", "is_weekend", "is_complete_month", "is_complete_year"}), {{"date_id", Int64.Type}, {"full_date", type date}, {"year", Int64.Type}, {"quarter", Int64.Type}, {"quarter_label", type text}, {"month", Int64.Type}, {"month_name", type text}, {"year_month_label", type text}, {"weekday_num", Int64.Type}, {"weekday_name", type text}, {"is_weekend", Int64.Type}, {"is_complete_month", Int64.Type}, {"is_complete_year", Int64.Type}})
+
+	annotation PBI_ResultType = Table
+

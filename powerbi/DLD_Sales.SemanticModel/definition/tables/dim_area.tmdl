@@ -1,0 +1,27 @@
+table dim_area
+	lineageTag: 56999b61-0113-4bb7-94af-a5aed98744ea
+
+	column area_id
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 124b5355-162a-4388-8c95-8097bc6964f0
+		summarizeBy: none
+		sourceColumn: area_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column area_name_en
+		dataType: string
+		lineageTag: 072f2798-dfdd-483d-8fb3-f0eefb242b38
+		summarizeBy: none
+		sourceColumn: area_name_en
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_area = m
+		mode: import
+		source = Table.TransformColumnTypes(Table.SelectColumns(GetTable("dim_area"), {"area_id", "area_name_en"}), {{"area_id", Int64.Type}, {"area_name_en", type text}})
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,25 @@
+expression SourceMode = "MySQL" meta [IsParameterQuery=true, List={"MySQL", "CSV"}, DefaultValue="MySQL", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 645707a5-8fa9-4eff-b6c8-6d1acc577f14
+
+	annotation PBI_ResultType = Text
+
+expression MySqlServer = "localhost:3306" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 8e723da1-96d0-479c-a27a-2d75fabe4edd
+
+	annotation PBI_ResultType = Text
+
+expression MySqlDatabase = "dld" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: e7ccd03b-d05c-429c-bcff-cc98350042aa
+
+	annotation PBI_ResultType = Text
+
+expression DataFolder = "C:\Users\ASUS\OneDrive\Desktop\Cybersoft\DA\capstone\data\processed\" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: f13e963d-4955-4739-9f9c-6f73ce0c34d7
+
+	annotation PBI_ResultType = Text
+
+expression GetTable = (tableName as text) as table => let Source = if SourceMode = "CSV" then Table.PromoteHeaders(Csv.Document(File.Contents(DataFolder & tableName & ".csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]), [PromoteAllScalars = true]) else MySQL.Database(MySqlServer, MySqlDatabase){[Schema = MySqlDatabase, Item = tableName]}[Data] in Source
+	lineageTag: ea0e9096-8c4f-4137-8e25-c492dca99a6c
+
+	annotation PBI_ResultType = Function
+

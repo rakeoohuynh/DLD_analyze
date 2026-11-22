@@ -1,0 +1,79 @@
+table dim_property
+	lineageTag: 55db7e2e-a0a9-41a4-ba94-cfea52487e99
+
+	column property_id
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d12b64a9-23fc-4dc7-baf0-10645c72c590
+		summarizeBy: none
+		sourceColumn: property_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column property_type_label
+		dataType: string
+		lineageTag: 4858b33c-c069-4310-b23b-1a48bc472f2f
+		summarizeBy: none
+		sourceColumn: property_type_label
+
+		annotation SummarizationSetBy = Automatic
+
+	column property_sub_type
+		dataType: string
+		lineageTag: 256f4eac-872d-46b2-a937-6bfc62e7d802
+		summarizeBy: none
+		sourceColumn: property_sub_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column usage_label
+		dataType: string
+		lineageTag: 244627ff-7f99-4177-a2d4-2a383b3fe608
+		summarizeBy: none
+		sourceColumn: usage_label
+
+		annotation SummarizationSetBy = Automatic
+
+	column rooms_bucket
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: f6aaa5ac-ce3c-4205-8d83-832c9e3c9914
+		summarizeBy: none
+		sourceColumn: rooms_bucket
+
+		annotation SummarizationSetBy = Automatic
+
+	column rooms_label
+		dataType: string
+		lineageTag: 4d7b3a5f-bfff-4f06-a346-9d66125be1f8
+		summarizeBy: none
+		sourceColumn: rooms_label
+
+		annotation SummarizationSetBy = Automatic
+
+	column has_parking
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d275e8bf-e2ab-4e62-8838-dd8aef40aa02
+		summarizeBy: none
+		sourceColumn: has_parking
+
+		annotation SummarizationSetBy = Automatic
+
+	column parking_label
+		dataType: string
+		lineageTag: 06eee130-d361-47d0-9d8e-955e7a44b622
+		summarizeBy: none
+		sourceColumn: parking_label
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_property = m
+		mode: import
+		source = Table.TransformColumnTypes(Table.SelectColumns(GetTable("dim_property"), {"property_id", "property_type_label", "property_sub_type", "usage_label", "rooms_bucket", "rooms_label", "has_parking", "parking_label"}), {{"property_id", Int64.Type}, {"property_type_label", type text}, {"property_sub_type", type text}, {"usage_label", type text}, {"rooms_bucket", Int64.Type}, {"rooms_label", type text}, {"has_parking", Int64.Type}, {"parking_label", type text}})
+
+	annotation PBI_ResultType = Table
+

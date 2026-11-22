@@ -1,0 +1,43 @@
+table dim_project
+	lineageTag: 3be47b3c-408b-428d-9820-58e8f0079c88
+
+	column project_id
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 0810abed-21d1-4ffe-989d-04fea0bc773f
+		summarizeBy: none
+		sourceColumn: project_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column project_name
+		dataType: string
+		lineageTag: eff19aed-2b7e-4f34-aa46-63b434541c01
+		summarizeBy: none
+		sourceColumn: project_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column master_project_name
+		dataType: string
+		lineageTag: b83dcd8e-11cc-4514-b059-5a54e8a7cf8d
+		summarizeBy: none
+		sourceColumn: master_project_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column building_name
+		dataType: string
+		lineageTag: 07665b01-ac79-49dc-8bc4-85ae8b30b87f
+		summarizeBy: none
+		sourceColumn: building_name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_project = m
+		mode: import
+		source = Table.TransformColumnTypes(Table.SelectColumns(GetTable("dim_project"), {"project_id", "project_name", "master_project_name", "building_name"}), {{"project_id", Int64.Type}, {"project_name", type text}, {"master_project_name", type text}, {"building_name", type text}})
+
+	annotation PBI_ResultType = Table
+

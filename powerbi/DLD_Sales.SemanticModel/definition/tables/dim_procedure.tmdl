@@ -1,0 +1,35 @@
+table dim_procedure
+	lineageTag: e2cd8d01-6910-47d9-a0b9-0debaea170bd
+
+	column procedure_id
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b150dd1c-45d1-43ae-8993-b777a41a3287
+		summarizeBy: none
+		sourceColumn: procedure_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column procedure_name_en
+		dataType: string
+		lineageTag: 30486c8b-d8bc-4515-9f2a-a3fd8150e78b
+		summarizeBy: none
+		sourceColumn: procedure_name_en
+
+		annotation SummarizationSetBy = Automatic
+
+	column reg_type_label
+		dataType: string
+		lineageTag: 9271cc0c-b196-4fdc-9cfe-06e4316cb4ee
+		summarizeBy: none
+		sourceColumn: reg_type_label
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_procedure = m
+		mode: import
+		source = Table.TransformColumnTypes(Table.SelectColumns(GetTable("dim_procedure"), {"procedure_id", "procedure_name_en", "reg_type_label"}), {{"procedure_id", Int64.Type}, {"procedure_name_en", type text}, {"reg_type_label", type text}})
+
+	annotation PBI_ResultType = Table
+
