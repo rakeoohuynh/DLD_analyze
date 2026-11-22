@@ -1,0 +1,18 @@
+{
+  "name": "CY25SU11",
+  "dataColors": [
+    "#1F5FAD",
+    "#5DA9E9",
+    "#0B2A55",
+    "#9CC8F0",
+    "#2E86C1",
+    "#7FA7D6",
+    "#16467F",
+    "#B9D9F5",
+    "#3F7FBF",
+    "#0E3A70"
+  ],
+  "foreground": "#14233C",
+  "background": "#FFFFFF",
+  "tableAccent": "#1F5FAD"
+}
