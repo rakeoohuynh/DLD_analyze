@@ -51,6 +51,13 @@
                   "Value": "'Off-plan share'"
                 }
               }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
             }
           }
         }

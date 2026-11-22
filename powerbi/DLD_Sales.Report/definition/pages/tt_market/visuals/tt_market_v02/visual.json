@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "tt_market_v02",
   "position": {
     "x": 146,
     "y": 44,
     "z": 2000,
-    "width": 128,
     "height": 70,
+    "width": 128,
     "tabOrder": 2000
   },
   "visual": {
@@ -33,7 +33,21 @@
         }
       }
     },
-    "drillFilterOtherVisuals": true,
+    "objects": {
+      "labels": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "16D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
     "visualContainerObjects": {
       "title": [
         {
@@ -51,25 +65,36 @@
                   "Value": "'Median PSF (AED)'"
                 }
               }
-            }
-          }
-        }
-      ]
-    },
-    "objects": {
-      "labels": [
-        {
-          "properties": {
+            },
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "16D"
+                  "Value": "8D"
                 }
               }
             }
           }
         }
       ]
-    }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "7565478e98e7a5b3b7b4",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales"
+              }
+            },
+            "Property": "Median PSF Residential"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }
