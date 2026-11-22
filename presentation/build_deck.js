@@ -8,6 +8,17 @@ const pptxgen = require("pptxgenjs");
 const D = JSON.parse(fs.readFileSync(path.join(__dirname, "data.json"), "utf8"));
 const OUT = path.join(__dirname, "DLD_capstone.pptx");
 
+// Speaker notes come from script.md: section "## N. ..." holds the bullets for slide N.
+const SCRIPT = fs.readFileSync(path.join(__dirname, "script.md"), "utf8").replace(/\r\n/g, "\n");
+const NOTES = {};
+for (const m of SCRIPT.matchAll(/^## (\d+)\. [^\n]*\n([\s\S]*?)(?=^## |^---|(?![\s\S]))/gm)) NOTES[+m[1]] = m[2].trim();
+let noteIndex = 0;
+function slideNotes(slide) {
+  noteIndex += 1;
+  if (!NOTES[noteIndex]) throw new Error(`script.md has no section "## ${noteIndex}."`);
+  slide.addNotes(NOTES[noteIndex]);
+}
+
 // ---------------------------------------------------------------- palette
 const NAVY = "0B2A55", BLUE = "1F5FAD", SKY = "5DA9E9", PALE = "D6E6F7", TINT = "EEF3F9";
 const INK = "14233C", MUTED = "5B6B82", LINE = "D9E3EF", ORANGE = "E67E22", WHITE = "FFFFFF";
@@ -89,10 +100,7 @@ let s = pres.addSlide({ masterName: "DARK", sectionTitle: "Mở đầu" });
 s.addText("Thị trường bất động sản Dubai 2004–2026", { placeholder: "title" });
 s.addText("Phân tích 1,34 triệu giao dịch mua bán đăng ký tại Dubai Land Department\nPython ETL · MySQL · Power BI · Machine Learning",
   { placeholder: "body" });
-s.addNotes(
-  "Chào thầy cô và các bạn. Đề tài của em là phân tích thị trường bất động sản Dubai, dựa trên toàn bộ giao dịch mua bán " +
-  "đã đăng ký với Dubai Land Department từ 2004 đến tháng 10 năm 2026, khoảng 1,34 triệu giao dịch sau khi làm sạch. " +
-  "Em sẽ đi qua 4 phần: dữ liệu và quy trình ETL, các insight chính về thị trường, phần Machine Learning, và cuối cùng là đề xuất.");
+slideNotes(s);
 
 // ================================================================ 2. Executive summary
 s = content("Mở đầu", "Tóm tắt: thị trường bùng nổ, nhưng 2026 bắt đầu chững lại",
@@ -112,11 +120,7 @@ kpis.forEach(([v, l, c], i) => {
 });
 s.addText("Thị trường đang chuyển từ giai đoạn tăng nóng sang chọn lọc: vị trí và loại sản phẩm quyết định giá nhiều hơn chu kỳ chung.",
   { x: M, y: 5.0, w: CW, h: 0.8, fontFace: BODY, fontSize: 18, italic: true, color: INK, margin: 0, isTextBox: true });
-s.addNotes(
-  "Nếu chỉ nhớ một slide thì đây là slide đó. Thứ nhất, số giao dịch năm 2025 gấp khoảng 6,5 lần năm 2020. " +
-  "Thứ hai, giá mỗi foot vuông của nhà ở tăng 83% từ đáy năm 2020. Thứ ba, gần 2/3 giao dịch là Off-Plan, tức mua dự án chưa xây xong. " +
-  "Và thứ tư, năm 2026 số giao dịch giảm 21% so với cùng kỳ, trong khi giá vẫn tăng khoảng 4%: lượng mua giảm nhưng giá chưa giảm. " +
-  "Các phần sau sẽ giải thích từng con số.");
+slideNotes(s);
 
 // ================================================================ 3. Pipeline
 pres.addSection({ title: "Dữ liệu và ETL" });
@@ -146,11 +150,7 @@ const pst = [
   ["11/11", "bước kiểm tra sau khi load đều đạt"],
 ];
 pst.forEach(([v, l], i) => stat(s, M + i * (CW / 3), 4.6, CW / 3 - 0.4, v, l, BLUE, 36));
-s.addNotes(
-  "Dữ liệu là file CSV 1,37 triệu dòng. Em viết pipeline bằng Python, chạy một lệnh là xong cả 6 bước. " +
-  "Sau khi làm sạch còn 1.335.396 giao dịch, tức giữ được 97,3% dữ liệu gốc. Dữ liệu được load vào MySQL theo mô hình star schema, " +
-  "sau đó kiểm tra lại: số dòng khớp, khóa chính không trùng, không có khóa mồ côi và tổng giá trị khớp với pandas. " +
-  "Từ MySQL, dữ liệu đi tiếp sang Power BI và notebook Machine Learning.");
+slideNotes(s);
 
 // ================================================================ 4. Data quality
 s = content("Dữ liệu và ETL", "Dữ liệu “trông sạch” nhưng có 5 vấn đề cần xử lý",
@@ -168,11 +168,58 @@ const rows = [
 ];
 s.addTable(rows, { x: M, y: 1.85, w: CW, colW: [5.0, 2.0, CW - 7.0], border: { type: "solid", color: LINE, pt: 0.75 },
   fill: { color: WHITE }, rowH: 0.62, valign: "middle", margin: [0.06, 0.12, 0.06, 0.12] });
-s.addNotes(
-  "Nhìn qua thì dữ liệu khá sạch, nhưng khi kiểm tra kỹ em thấy một số vấn đề. Đáng chú ý nhất là 23 nghìn dòng năm 2026 thiếu mã thủ tục. " +
-  "Em phát hiện số ở giữa của transaction_id chính là mã thủ tục, khớp 100% trên các dòng có đủ dữ liệu, nên khôi phục được toàn bộ " +
-  "thay vì gán Unknown. Có khoảng 118 nghìn dòng giống hệt nhau chỉ khác mã giao dịch; em giữ lại vì đó là các đợt chủ đầu tư bán " +
-  "nhiều căn cùng mẫu, cùng ngày, cùng giá. Cuối cùng, em gắn cờ tháng và năm chưa đủ dữ liệu để biểu đồ xu hướng không bị giảm giả.");
+slideNotes(s);
+
+// ================================================================ 4b. Recovering procedure_id (real examples)
+s = content("Dữ liệu và ETL", "Khôi phục mã thủ tục: transaction_id chứa sẵn đáp án",
+  "Ví dụ thật từ dataset · phần thứ hai của transaction_id chính là procedure_id");
+// Anatomy of one real id: 1-11-2025-19755
+const parts = [["1", "tiền tố", MUTED], ["11", "mã thủ tục", ORANGE], ["2025", "năm", MUTED], ["19755", "số thứ tự", MUTED]];
+const pw = [1.0, 1.4, 1.7, 2.1], pg = 0.45;
+let px = (W - (pw.reduce((a, b) => a + b) + pg * 3)) / 2;
+card(s, M, 1.75, CW, 1.75, TINT, "anatomy");
+parts.forEach(([t, l, c], i) => {
+  s.addText(t, { x: px, y: 1.9, w: pw[i], h: 0.85, fontFace: HEAD, fontSize: 40, bold: true, align: "center",
+    color: i === 1 ? ORANGE : NAVY, margin: 0, isTextBox: true, valign: "middle" });
+  s.addText(l, { x: px, y: 2.8, w: pw[i], h: 0.4, fontFace: BODY, fontSize: 14, align: "center",
+    color: c, bold: i === 1, margin: 0, isTextBox: true });
+  if (i < 3) s.addText("–", { x: px + pw[i], y: 1.9, w: pg, h: 0.85, fontFace: HEAD, fontSize: 36, color: MUTED,
+    align: "center", valign: "middle", margin: 0, isTextBox: true });
+  px += pw[i] + pg;
+});
+const idRuns = (id) => {
+  const [a, b, ...rest] = id.split("-");
+  return [{ text: `${a}-`, options: {} }, { text: b, options: { bold: true, color: ORANGE } }, { text: `-${rest.join("-")}`, options: {} }];
+};
+const th = (t) => ({ text: t, options: { bold: true, color: WHITE, fill: { color: NAVY }, fontFace: BODY, fontSize: 13 } });
+const td = (t, o = {}) => ({ text: t, options: { fontFace: BODY, fontSize: 13, color: INK, ...o } });
+const tw = (CW - 0.4) / 2;
+s.addText("Dòng có đủ dữ liệu: phần giữa luôn trùng procedure_id", { x: M, y: 3.7, w: tw, h: 0.4, fontFace: BODY,
+  fontSize: 14, bold: true, color: NAVY, margin: 0, isTextBox: true });
+s.addTable([
+  [th("transaction_id"), th("procedure_id"), th("Thủ tục")],
+  [td(idRuns("1-11-2025-19755")), td("11"), td("Sell")],
+  [td(idRuns("1-102-2025-41486")), td("102"), td("Sell - Pre registration")],
+  [td(idRuns("1-41-2025-16781")), td("41"), td("Delayed Sell")],
+], { x: M, y: 4.15, w: tw, colW: [2.3, 1.3, tw - 3.6], rowH: 0.42, border: { type: "solid", color: LINE, pt: 0.75 },
+  fill: { color: WHITE }, valign: "middle", margin: [0.04, 0.1, 0.04, 0.1] });
+s.addText("Dòng năm 2026 bị trống: suy ra từ phần giữa", { x: M + tw + 0.4, y: 3.7, w: tw, h: 0.4, fontFace: BODY,
+  fontSize: 14, bold: true, color: NAVY, margin: 0, isTextBox: true });
+s.addTable([
+  [th("transaction_id"), th("procedure_id gốc"), th("Sau khôi phục")],
+  [td(idRuns("1-11-2026-11120")), td("(trống)", { color: MUTED, italic: true }), td("11 · Sell", { bold: true, color: BLUE })],
+  [td(idRuns("1-11-2026-11990")), td("(trống)", { color: MUTED, italic: true }), td("11 · Sell", { bold: true, color: BLUE })],
+  [td(idRuns("1-11-2026-21059")), td("(trống)", { color: MUTED, italic: true }), td("11 · Sell", { bold: true, color: BLUE })],
+], { x: M + tw + 0.4, y: 4.15, w: tw, colW: [2.3, 1.7, tw - 4.0], rowH: 0.42, border: { type: "solid", color: LINE, pt: 0.75 },
+  fill: { color: WHITE }, valign: "middle", margin: [0.04, 0.1, 0.04, 0.1] });
+[["1.320.458", "dòng kiểm chứng, khớp 100%"], ["23.324", "dòng 2026 khôi phục thành Sell"],
+ ["0", "dòng phải gán “Unknown”"]].forEach(([v, l], i) => {
+  const x = M + i * (CW / 3);
+  s.addText([{ text: `${v}  `, options: { fontFace: HEAD, fontSize: 22, bold: true, color: i === 1 ? ORANGE : NAVY } },
+    { text: l, options: { fontFace: BODY, fontSize: 13, color: MUTED } }],
+    { x, y: 6.05, w: CW / 3 - 0.2, h: 0.7, margin: 0, valign: "middle", isTextBox: true });
+});
+slideNotes(s);
 
 // ================================================================ 5. Star schema
 s = content("Dữ liệu và ETL", "Mô hình star schema: 1 bảng fact và 5 bảng dimension",
@@ -201,11 +248,7 @@ dims.forEach(([n, d, x, y]) => {
   s.addShape(pres.shapes.LINE, { x: Math.min(x1, x2), y: Math.min(y1, y2), w: Math.abs(x2 - x1) || 0.001,
     h: Math.abs(y2 - y1) || 0.001, flipH: (x2 < x1) !== (y2 < y1), line: { color: SKY, width: 1.5 } });
 });
-s.addNotes(
-  "Từ một bảng phẳng 20 cột, em tách thành star schema: bảng fact_sales chứa số đo là giá, diện tích, giá mỗi sqft, " +
-  "và 5 bảng dimension. dim_date là lịch liên tục, có cờ đánh dấu tháng và năm chưa đủ dữ liệu. " +
-  "dim_property là junk dimension gom loại BĐS, số phòng, mục đích sử dụng và chỗ đậu xe thành 140 tổ hợp. " +
-  "Mọi quan hệ là nhiều-một, một chiều. Sau khi load, em kiểm tra không có dòng fact nào trỏ tới khóa không tồn tại.");
+slideNotes(s);
 
 // ================================================================ 6. Volume boom
 pres.addSection({ title: "Insight thị trường" });
@@ -220,10 +263,7 @@ card(s, 9.6, 1.9, 3.13, 4.7, TINT, "callouts");
 stat(s, 9.9, 2.1, 2.6, "210.438", "giao dịch năm 2025, cao nhất lịch sử", NAVY, 34);
 stat(s, 9.9, 3.6, 2.6, "589 tỷ", "AED tổng giá trị giao dịch năm 2025", NAVY, 34);
 stat(s, 9.9, 5.0, 2.6, "2009", "lần đầu Off-Plan xuất hiện, rồi sụp cùng khủng hoảng", MUTED, 28);
-s.addNotes(
-  "Biểu đồ cho thấy hai chu kỳ. Chu kỳ đầu là 2008–2009, trước khủng hoảng tài chính, sau đó thị trường giảm mạnh và đi ngang đến 2020. " +
-  "Chu kỳ thứ hai bắt đầu sau Covid: từ 32 nghìn giao dịch năm 2020 lên 210 nghìn năm 2025, gấp 6,5 lần, " +
-  "với tổng giá trị 589 tỷ AED. Phần màu xanh đậm là Off-Plan, và nó chính là động lực tăng trưởng chính.");
+slideNotes(s);
 
 // ================================================================ 7. Price
 s = content("Insight thị trường", "Giá nhà ở tăng 83% từ đáy năm 2020",
@@ -235,11 +275,7 @@ card(s, 9.6, 1.9, 3.13, 4.7, TINT, "callouts");
 stat(s, 9.9, 2.1, 2.6, `${fmt(D.psf.at(-1))}`, "AED/sqft năm 2025, đỉnh mới", NAVY, 34);
 stat(s, 9.9, 3.6, 2.6, "+26%", "năm 2022, mức tăng mạnh nhất trong 1 năm", NAVY, 34);
 stat(s, 9.9, 5.0, 2.6, "Median", "dùng thay trung bình vì giá lệch phải mạnh", MUTED, 28);
-s.addNotes(
-  "Về giá, em dùng median giá mỗi foot vuông và chỉ tính căn hộ, villa để ở, đúng theo hướng dẫn của nguồn dữ liệu, " +
-  "vì đất và văn phòng định giá theo logic khác. Giá đi ngang khoảng 1.000 AED suốt 2014–2021, sau đó tăng mạnh: " +
-  "+26% riêng năm 2022 và đạt 1.686 AED năm 2025, cao hơn đáy năm 2020 khoảng 83%. " +
-  "Em dùng median chứ không dùng trung bình vì giá lệch phải: giá trung bình cao gấp đôi median.");
+slideNotes(s);
 
 // ================================================================ 8. 2026 slowdown
 s = content("Insight thị trường", "2026: lượng mua giảm, nhưng giá chưa giảm",
@@ -255,10 +291,7 @@ s.addText([
   { text: "Lưu ý: ", options: { bold: true, color: NAVY } },
   { text: "các tháng gần nhất có thể chưa đăng ký đủ, nên mức giảm thực tế có thể nhỏ hơn." },
 ], { x: M, y: 4.9, w: CW, h: 1.2, fontFace: BODY, fontSize: 16, color: INK, margin: 0, paraSpaceAfter: 6, isTextBox: true });
-s.addNotes(
-  "Đây là insight em thấy đáng chú ý nhất. So cùng kỳ từ 1/1 đến 5/10, số giao dịch năm 2026 giảm 21%, nhưng giá vẫn tăng 4%. " +
-  "Tức là người mua đã chậm lại nhưng người bán chưa giảm giá. Em so cùng kỳ chứ không so cả năm, vì dữ liệu 2026 chỉ đến ngày 5/10. " +
-  "Cũng cần thận trọng: các giao dịch gần đây có thể chưa được đăng ký hết, nên mức giảm có thể nhỏ hơn con số này.");
+slideNotes(s);
 
 // ================================================================ 9. Off-plan
 const opYears = D.years.slice(2), opShare = D.offplan_share.slice(2);
@@ -271,10 +304,7 @@ card(s, 9.6, 1.9, 3.13, 4.7, TINT, "callouts");
 stat(s, 9.9, 2.1, 2.6, "62,6%", "giao dịch năm 2025 là Off-Plan (2021: 39%)", NAVY, 34);
 stat(s, 9.9, 3.6, 2.6, "+33%", "giá/sqft Off-Plan cao hơn Ready năm 2025", ORANGE, 34);
 stat(s, 9.9, 5.0, 2.6, "JVC", "master project nhiều giao dịch Off-Plan nhất từ 2024", MUTED, 28);
-s.addNotes(
-  "Off-Plan là mua căn hộ khi dự án chưa xây xong. Tỷ lệ này tăng từ 39% năm 2021 lên gần 63% năm 2025. " +
-  "Đáng chú ý là giá mỗi sqft của Off-Plan cao hơn Ready khoảng 33%, vì dự án mới, vị trí mới và có kế hoạch thanh toán linh hoạt. " +
-  "Dẫn đầu là Jumeirah Village Circle. Thị trường phụ thuộc nhiều vào Off-Plan cũng là một rủi ro nếu nhu cầu chững lại như năm 2026.");
+slideNotes(s);
 
 // ================================================================ 10. Seasonality
 const months = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"];
@@ -288,10 +318,7 @@ card(s, 9.6, 1.9, 3.13, 4.7, TINT, "callouts");
 stat(s, 9.9, 2.1, 2.6, "+13%", "tháng 10, tháng cao điểm", NAVY, 34);
 stat(s, 9.9, 3.6, 2.6, "−16%", "tháng 1, thấp nhất năm", BLUE, 34);
 stat(s, 9.9, 5.0, 2.6, "Q4", "nên tập trung ngân sách marketing", MUTED, 28);
-s.addNotes(
-  "Ngoài xu hướng dài hạn, thị trường có tính mùa vụ khá rõ. Tháng 10 cao hơn trung bình 13%, quý 4 nhìn chung sôi động. " +
-  "Tháng 1 và tháng 2 trầm nhất, thấp hơn 11–16%. Với một công ty môi giới hay chủ đầu tư, đây là gợi ý về thời điểm " +
-  "tung dự án và đẩy ngân sách marketing.");
+slideNotes(s);
 
 // ================================================================ 11. Areas
 s = content("Insight thị trường", "Khu đại chúng dẫn đầu về số giao dịch",
@@ -304,11 +331,7 @@ card(s, 9.6, 1.9, 3.13, 4.7, TINT, "callouts");
 stat(s, 9.9, 2.1, 2.6, "43.465", "giao dịch tại Al Barsha South Fourth (thường gọi là JVC)", NAVY, 34);
 stat(s, 9.9, 3.6, 2.6, "+190%", "khu tăng giá nhanh nhất 2022→2025 (Al Hebiah First)", ORANGE, 34);
 stat(s, 9.9, 5.0, 2.6, "−5%", "Palm Jumeirah: khu sang nhất gần như đi ngang", MUTED, 28);
-s.addNotes(
-  "Khu nhiều giao dịch nhất là Al Barsha South Fourth, chính là khu mà người Dubai quen gọi là Jumeirah Village Circle, " +
-  "với hơn 43 nghìn giao dịch từ 2024. Các khu dẫn đầu chủ yếu là khu căn hộ tầm trung. " +
-  "Trong khi đó, khu tăng giá mạnh nhất là các khu vùng ven như Al Hebiah, gần gấp 3 lần trong 3 năm, " +
-  "còn Palm Jumeirah, khu cao cấp nhất, lại gần như đi ngang. Phần Machine Learning sẽ hệ thống hóa nhận xét này.");
+slideNotes(s);
 
 // ================================================================ 12. ML pricing
 pres.addSection({ title: "Machine Learning" });
@@ -336,13 +359,7 @@ s.addText([
   { text: "Thêm tên dự án làm mô hình kém đi: 43% giao dịch 2025 thuộc dự án mới (cold start)", options: { breakLine: true } },
   { text: "Không có view, tầng, thương hiệu → không dùng cho phân khúc siêu sang" },
 ], { x: 7.0, y: 5.25, w: 5.7, h: 1.5, fontFace: BODY, fontSize: 14, color: INK, margin: 0, paraSpaceAfter: 6, isTextBox: true });
-s.addNotes(
-  "Hướng ML thứ nhất là mô hình định giá. Em dự đoán giá mỗi sqft từ khu vực, loại căn, diện tích, số phòng và xu hướng thị trường. " +
-  "Em chia train/test theo thời gian: học trên 2012–2024, kiểm tra trên 2025, vì định giá thực tế là dự đoán tương lai. " +
-  "Để tránh rò rỉ dữ liệu, em không dùng giá bán làm biến đầu vào, còn xu hướng thị trường lấy theo median của tháng trước. " +
-  "LightGBM tốt nhất với sai số trung vị 13,4%, so với 25% nếu chỉ đoán bằng giá thị trường. " +
-  "Vị trí quyết định khoảng 65% giá. Một phát hiện thú vị: thêm tên dự án lại làm mô hình kém đi, vì 43% giao dịch năm 2025 " +
-  "thuộc dự án mới mà mô hình chưa từng thấy.");
+slideNotes(s);
 
 // ================================================================ 13. Clusters
 s = content("Machine Learning", "Phân cụm K-Means: 4 nhóm khu vực với hành vi giá khác nhau",
@@ -369,12 +386,7 @@ clusters.forEach(([n, k, psf, g, desc, ex, col], i) => {
     { x: x + 0.3, y: y + 3.1, w: cw4 - 0.6, h: 1.6, fontFace: BODY, fontSize: 14, color: INK, margin: 0,
       paraSpaceAfter: 6, valign: "top", isTextBox: true });
 });
-s.addNotes(
-  "Hướng ML thứ hai là phân cụm khu vực bằng K-Means, dựa trên 5 đặc trưng: mức giá, tốc độ tăng giá, số giao dịch, " +
-  "tỷ lệ Off-Plan và diện tích căn điển hình. Em chọn 4 cụm dựa trên Elbow và Silhouette, và vì 4 nhóm dễ diễn giải. " +
-  "Nhóm Emerging hot spots có giá vừa phải nhưng tăng gần 2,5 lần trong 3 năm. Nhóm Prime giá cao nhất nhưng tăng chậm nhất. " +
-  "Nhóm Mass-market là nơi có nhiều giao dịch nhất. Nhóm cuối là các khu villa, nhà lớn đã hoàn thiện. " +
-  "Kết quả phân cụm được ghi vào bảng area_cluster trong MySQL để dùng tiếp trong Power BI.");
+slideNotes(s);
 
 // ================================================================ 14. Recommendations
 pres.addSection({ title: "Kết luận" });
@@ -395,11 +407,7 @@ recs.forEach(([t, d, col], i) => {
   s.addText(d, { x: M + 3.7, y: y + 0.1, w: CW - 3.9, h: 0.8, fontFace: BODY, fontSize: 15, color: INK, margin: 0,
     valign: "middle", isTextBox: true });
 });
-s.addNotes(
-  "Từ các phân tích trên, em đưa ra 4 đề xuất theo mục tiêu. Nhà đầu tư muốn tăng trưởng nên nhìn vào nhóm Emerging hot spots, " +
-  "nhưng cần theo dõi tiến độ bàn giao vì nhóm này phụ thuộc Off-Plan, trong bối cảnh năm 2026 số giao dịch đang giảm. " +
-  "Người mua để ở hoặc cho thuê nên chọn Mass-market hubs vì dễ bán lại. Nhóm Prime phù hợp giữ tài sản. " +
-  "Và mô hình định giá có thể dùng như công cụ kiểm tra nhanh giá chào bán.");
+slideNotes(s);
 
 // ================================================================ 15. Limitations
 s = content("Kết luận", "Hạn chế và hướng phát triển", "Những gì dữ liệu chưa trả lời được và bước tiếp theo");
@@ -418,17 +426,13 @@ lim.forEach(([t, items], i) => {
     { x: x + 0.35, y: 2.7, w: w - 0.7, h: 3.7, fontFace: BODY, fontSize: 16, color: INK, paraSpaceAfter: 12,
       valign: "top", isTextBox: true });
 });
-s.addNotes(
-  "Bài phân tích vẫn có hạn chế. Dữ liệu không có view, tầng hay thương hiệu chủ đầu tư, nên mô hình định giá chưa chính xác ở phân khúc cao cấp. " +
-  "Chưa có giá thuê nên chưa tính được lợi suất cho thuê, một chỉ số nhà đầu tư rất quan tâm. " +
-  "Hướng tiếp theo là bổ sung dữ liệu thuê, tự động hóa ETL hàng tháng và đưa nhãn cụm vào dashboard.");
+slideNotes(s);
 
 // ================================================================ 16. Closing
 s = pres.addSlide({ masterName: "DARK", sectionTitle: "Kết luận" });
 s.addText("Cảm ơn thầy cô và các bạn", { placeholder: "title" });
 s.addText("Hỏi đáp\nMã nguồn: github.com/rakeoohuynh/DLD_analyze", { placeholder: "body" });
-s.addNotes("Em xin cảm ơn thầy cô và các bạn đã lắng nghe. Toàn bộ mã nguồn ETL, dashboard Power BI và notebook ML " +
-  "đều có trên GitHub. Em rất mong nhận được câu hỏi và góp ý.");
+slideNotes(s);
 
 // Write without ZIP folder entries (they break opening the deck from OneDrive/SharePoint).
 (async () => {

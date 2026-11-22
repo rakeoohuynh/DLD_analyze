@@ -50,7 +50,7 @@ Database MySQL `dld` gồm 1 bảng fact và 5 bảng dimension, quan hệ nhi�
 
 Notebook ML ghi thêm bảng `area_cluster` (nhãn cụm của 49 khu vực).
 
-**Làm sạch dữ liệu:** giữ 97,3% dữ liệu gốc. Loại các dòng bị gắn cờ chất lượng và dữ liệu trước 2004; khôi phục mã thủ tục bị thiếu của năm 2026 từ `transaction_id`; gộp các tên dự án chỉ khác chữ hoa/thường. Chi tiết trong [`etl.py`](etl.py) và slide 4.
+**Làm sạch dữ liệu:** giữ 97,3% dữ liệu gốc. Loại các dòng bị gắn cờ chất lượng và dữ liệu trước 2004; khôi phục mã thủ tục bị thiếu của năm 2026 từ `transaction_id`; gộp các tên dự án chỉ khác chữ hoa/thường. Chi tiết trong [`etl.py`](etl.py) và slide 4–5.
 
 ## Cách chạy
 
@@ -95,7 +95,7 @@ npm install
 node build_deck.js
 ```
 
-Lưu ý: script sẽ ghi đè `DLD_capstone.pptx`. Các số liệu ML trên slide 12–13 được ghi cố định theo kết quả của `ML.ipynb`.
+Lưu ý: script sẽ ghi đè `DLD_capstone.pptx`. Các số liệu ML trên slide 13–14 được ghi cố định theo kết quả của `ML.ipynb`.
 
 ## Nguồn dữ liệu
 
