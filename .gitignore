@@ -15,8 +15,10 @@ log/
 
 # Local tooling
 .claude/
-DLD_analyze/
 
 # Power BI local cache
 **/.pbi/localSettings.json
 **/.pbi/cache.abf
+
+# Node (presentation build)
+node_modules/
