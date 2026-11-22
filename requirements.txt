@@ -8,3 +8,5 @@ ipykernel
 # psycopg2-binary   # PostgreSQL
 pymysql           # MySQL
 # pyodbc            # SQL Server
+scikit-learn
+lightgbm
