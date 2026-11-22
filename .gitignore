@@ -1,0 +1,22 @@
+# Python
+myenv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.env
+
+# Data: raw CSV exceeds GitHub's 100 MB limit; processed data is rebuilt by etl.py
+data/raw/*.csv
+data/raw/*.parquet
+data/processed/
+
+# Runtime output
+log/
+
+# Local tooling
+.claude/
+DLD_analyze/
+
+# Power BI local cache
+**/.pbi/localSettings.json
+**/.pbi/cache.abf

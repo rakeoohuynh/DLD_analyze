@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this dataset, please cite it as below."
+title: "Dubai Real Estate Sales Transactions (DLD, 2004-2026)"
+type: dataset
+authors:
+  - name: "Dubai Real Estate Data"
+    website: "https://www.dubairealestatedata.com"
+url: "https://www.dubairealestatedata.com"
+repository: "https://www.dubairealestatedata.com/sources"
+license: "CC-BY-4.0"
+date-released: "2026-10-05"
+abstract: >
+  1,372,277 registered property sale transactions in Dubai, sourced from the
+  Dubai Land Department (DLD) via the Dubai Pulse open-data platform, covering
+  2004 through 5 October 2026. Published by dubairealestatedata.com, an
+  independent analytics site built exclusively on official open data.

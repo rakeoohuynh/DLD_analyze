@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-10-05T09:27:45.373Z",
+  "source": "DuckDB warehouse fact_sales (legacy Pulse backfill + DLD gateway imports), trans_group = Sales, not is_stale",
+  "warehouse_generation": 4,
+  "warehouse_pulled_at": "2026-10-05T09:25:43.389Z",
+  "methodology_version": "2.1",
+  "row_count": 1372277,
+  "clean_row_count": 1343782,
+  "coverage": {
+    "from": "1975-01-01",
+    "to": "2026-10-05"
+  },
+  "outputs": {
+    "dld_sales_transactions.csv": {
+      "bytes": 238933254,
+      "sha256": "9c8e3c01f51d8ef6f462a089a87f77b21dd3c292c364bcb081bda57af4235112"
+    },
+    "dld_sales_transactions.parquet": {
+      "bytes": 22658248,
+      "sha256": "73be9631af185f4ba599ea299752deecdb137cbbe36c0afb95abc5e186d8b5e1"
+    }
+  }
+}

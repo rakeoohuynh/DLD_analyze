@@ -1,0 +1,10 @@
+pandas
+seaborn
+matplotlib
+sqlalchemy
+python-dotenv
+ipykernel
+# Thêm driver theo loại database bạn dùng:
+# psycopg2-binary   # PostgreSQL
+pymysql           # MySQL
+# pyodbc            # SQL Server
